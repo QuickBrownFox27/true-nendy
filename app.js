@@ -278,8 +278,9 @@ async function computeNendy() {
     if (j.code !== "Ok") throw new Error("OSRM: " + (j.message || j.code));
 
     candidates.forEach((c, i) => {
-      c.roadKm = j.distances[0][i + 1] != null ? j.distances[0][i + 1] / 1000 : Infinity;
-      c.driveMin = j.durations[0][i + 1] != null ? j.durations[0][i + 1] / 60 : Infinity;
+      c.noRoad = j.distances[0][i + 1] == null || j.durations[0][i + 1] == null;
+      c.roadKm = c.noRoad ? Infinity : j.distances[0][i + 1] / 1000;
+      c.driveMin = c.noRoad ? Infinity : j.durations[0][i + 1] / 60;
     });
 
     candidateCache = candidates;
@@ -297,9 +298,10 @@ function rankAndRender() {
   if (!candidateCache) return;
   clearRoute();
   const rankBy = document.getElementById("rankBy").value;
+  // (x - y) is NaN for two unreachable events (Infinity - Infinity): fall back to crow order
   results = [...candidateCache].sort((a, b) =>
-    rankBy === "duration" ? a.driveMin - b.driveMin :
-    rankBy === "crow" ? a.crow - b.crow : a.roadKm - b.roadKm);
+    (rankBy === "duration" ? a.driveMin - b.driveMin :
+     rankBy === "crow" ? a.crow - b.crow : a.roadKm - b.roadKm) || (a.crow - b.crow));
   results.forEach((c, i) => c.roadRank = i + 1);
   renderResults(rankBy);
 }
@@ -349,7 +351,7 @@ function renderResults(rankBy) {
   hero.innerHTML = `
     <div class="tag">Your ${rankBy === "crow" ? "official" : "true"} NENDY · ${rankLabel}</div>
     <div class="name">${top.name}</div>
-    <div class="stats">🚗 ${fmtKm(top.roadKm)} · ⏱ ${fmtDur(top.driveMin)} · 🐦 ${fmtKm(top.crow)} direct (crow rank #${top.crowRank})</div>
+    <div class="stats">${top.noRoad ? "✈️ no road route — fly!" : `🚗 ${fmtKm(top.roadKm)} · ⏱ ${fmtDur(top.driveMin)}`} · 🐦 ${fmtKm(top.crow)} direct (crow rank #${top.crowRank})</div>
     ${upset}`;
 
   // Table
@@ -365,8 +367,8 @@ function renderResults(rankBy) {
     tr.innerHTML = `
       <td>${c.roadRank}</td>
       <td><div class="evt-name">${c.name.replace(" parkrun", "")}${c.s === 2 ? " (jr)" : ""}</div><div class="evt-loc">${c.loc || ""}</div></td>
-      <td class="num">${fmtKm(c.roadKm)}</td>
-      <td class="num">${fmtDur(c.driveMin)}</td>
+      <td class="num">${c.noRoad ? "✈️ fly" : fmtKm(c.roadKm)}</td>
+      <td class="num">${c.noRoad ? "—" : fmtDur(c.driveMin)}</td>
       <td class="num">${fmtKm(c.crow)}</td>
       <td>${delta}</td>`;
     tr.onclick = () => selectResult(c, tr);
@@ -403,6 +405,13 @@ async function selectResult(c, tr) {
   tr.classList.add("sel");
   selectedRow = tr;
   clearRoute();
+  if (c.noRoad) {
+    routeLayer = L.polyline([[home.lat, home.lng], [c.lat, c.lng]],
+      { color: "#c0392b", weight: 3, dashArray: "8 8", opacity: 0.8 }).addTo(map);
+    map.fitBounds(routeLayer.getBounds().pad(0.15));
+    setStatus(`✈️ No road route to ${c.name} — that one's a flight (${fmtKm(c.crow)} as the crow flies).`);
+    return;
+  }
   setStatus(`Fetching route to ${c.name}…`);
   try {
     const url = `${OSRM}/route/v1/driving/${home.lng},${home.lat};${c.lng},${c.lat}?overview=full&geometries=geojson`;
