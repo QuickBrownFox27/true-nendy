@@ -298,7 +298,8 @@ function rankAndRender() {
   clearRoute();
   const rankBy = document.getElementById("rankBy").value;
   results = [...candidateCache].sort((a, b) =>
-    rankBy === "duration" ? a.driveMin - b.driveMin : a.roadKm - b.roadKm);
+    rankBy === "duration" ? a.driveMin - b.driveMin :
+    rankBy === "crow" ? a.crow - b.crow : a.roadKm - b.roadKm);
   results.forEach((c, i) => c.roadRank = i + 1);
   renderResults(rankBy);
 }
@@ -310,6 +311,10 @@ document.getElementById("sortRoad").onclick = () => {
 };
 document.getElementById("sortDrive").onclick = () => {
   document.getElementById("rankBy").value = "duration";
+  rankAndRender();
+};
+document.getElementById("sortCrow").onclick = () => {
+  document.getElementById("rankBy").value = "crow";
   rankAndRender();
 };
 
@@ -325,17 +330,24 @@ function renderResults(rankBy) {
   panel.hidden = false;
   document.getElementById("sortRoad").classList.toggle("active", rankBy === "distance");
   document.getElementById("sortDrive").classList.toggle("active", rankBy === "duration");
+  document.getElementById("sortCrow").classList.toggle("active", rankBy === "crow");
 
-  // Hero card — the true NENDY
+  // Hero card — the true (or official) NENDY
   const top = results[0];
   const crowTop = results.find(c => c.crowRank === 1);
   const hero = document.getElementById("nendyHero");
+  const rankLabel = { duration: "by drive time", distance: "by road distance", crow: "as the crow flies" }[rankBy];
   let upset = "";
-  if (top.crowRank !== 1) {
+  if (rankBy === "crow") {
+    const roadTop = [...results].sort((a, b) => a.roadKm - b.roadKm)[0];
+    if (roadTop !== top) {
+      upset = `<div class="upset">🚗 The crow is lying to you: by road your <em>true</em> NENDY is <strong>${roadTop.name}</strong> (${fmtKm(roadTop.roadKm)}, ${fmtDur(roadTop.driveMin)}).</div>`;
+    }
+  } else if (top.crowRank !== 1) {
     upset = `<div class="upset">⚠️ Crow-flies NENDY is <strong>${crowTop.name}</strong> (${fmtKm(crowTop.crow)} direct, but ${fmtKm(crowTop.roadKm)} / ${fmtDur(crowTop.driveMin)} by road). Your <em>true</em> NENDY is different!</div>`;
   }
   hero.innerHTML = `
-    <div class="tag">Your true NENDY · by ${rankBy === "duration" ? "drive time" : "road distance"}</div>
+    <div class="tag">Your ${rankBy === "crow" ? "official" : "true"} NENDY · ${rankLabel}</div>
     <div class="name">${top.name}</div>
     <div class="stats">🚗 ${fmtKm(top.roadKm)} · ⏱ ${fmtDur(top.driveMin)} · 🐦 ${fmtKm(top.crow)} direct (crow rank #${top.crowRank})</div>
     ${upset}`;
