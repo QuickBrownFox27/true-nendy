@@ -185,6 +185,23 @@ textarea:focus { outline: none; border-color: var(--plum); }
 
 label.chk { display: flex; gap: 6px; align-items: center; font-size: 13px; }
 
+.home-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-row .muted { flex: 1; }
+.panel h2 .clear-link { float: right; }
+button.clear-link {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+button.clear-link:hover { background: #fde8e8; color: #a02020; border-color: #f3c4c4; }
+button.reset-all { width: 100%; color: var(--muted); font-size: 13px; }
+button.reset-all:hover { background: #fde8e8; color: #a02020; border-color: #f3c4c4; }
+
 #nendyHero {
   background: linear-gradient(135deg, var(--plum), #5a3f80);
   color: #fff;

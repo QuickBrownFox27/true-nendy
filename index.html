@@ -25,11 +25,16 @@
         <button id="gpsBtn" class="ghost">📍 Use my location</button>
         <button id="pickBtn" class="ghost">🎯 Click map to set</button>
       </div>
-      <div id="homeLabel" class="muted"></div>
+      <div class="home-row">
+        <div id="homeLabel" class="muted"></div>
+        <button id="clearHomeBtn" class="clear-link" hidden>Clear</button>
+      </div>
     </section>
 
     <section class="panel">
-      <h2>2 · Events you've done <span id="doneCount" class="pill">0</span></h2>
+      <h2>2 · Events you've done <span id="doneCount" class="pill">0</span>
+        <button id="clearDoneBtn" class="clear-link" hidden>Clear list</button>
+      </h2>
       <div class="import-box">
         <div class="import-title">⚡ Bulk import from your parkrun results</div>
         <div class="row">
@@ -38,7 +43,7 @@
         </div>
         <p class="hint">On your results page press <kbd>Ctrl</kbd>+<kbd>A</kbd> then <kbd>Ctrl</kbd>+<kbd>C</kbd>, come back and paste below.</p>
         <textarea id="pasteBox" rows="4" placeholder="Paste your whole results page here…"></textarea>
-        <button id="importBtn" class="primary">Import &amp; show my top 10</button>
+        <button id="importBtn" class="primary">Import and show my top 10 NENDY on map</button>
         <div id="importStatus" class="muted"></div>
       </div>
       <div class="or-line"><span>or tick off manually</span></div>
@@ -78,6 +83,8 @@
       </table>
       <p class="muted footnote" id="resultFoot">Click a row to draw the driving route. Δ shows how many places an event moved versus the official crow-flies ranking.</p>
     </section>
+
+    <button id="resetAllBtn" class="ghost reset-all">🔄 Start fresh for a new person</button>
 
     <footer class="muted">
       Data: parkrun events list (2026-07-20) · Routing © <a href="https://project-osrm.org" target="_blank">OSRM</a> / OpenStreetMap · Not affiliated with parkrun.

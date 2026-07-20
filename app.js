@@ -67,8 +67,19 @@ function setHome(lat, lng, label) {
     icon: L.divIcon({ className: "", html: '<div class="home-badge">🏠</div>', iconSize: [26, 26], iconAnchor: [13, 24] })
   }).addTo(map).bindPopup("Home base");
   document.getElementById("homeLabel").textContent = "🏠 " + label;
+  document.getElementById("clearHomeBtn").hidden = false;
   map.setView([lat, lng], Math.max(map.getZoom(), 10));
 }
+
+function clearHome() {
+  home = null;
+  saveState();
+  if (homeMarker) { map.removeLayer(homeMarker); homeMarker = null; }
+  document.getElementById("homeLabel").textContent = "";
+  document.getElementById("clearHomeBtn").hidden = true;
+  document.getElementById("addr").value = "";
+}
+document.getElementById("clearHomeBtn").onclick = clearHome;
 
 map.on("click", e => {
   if (!pickMode) return;
@@ -87,6 +98,7 @@ window.toggleDone = function (slug) {
 
 function renderDone() {
   document.getElementById("doneCount").textContent = done.size;
+  document.getElementById("clearDoneBtn").hidden = done.size === 0;
   const list = document.getElementById("doneList");
   const byName = Object.fromEntries(PARKRUN_EVENTS.map(e => [e.n, e]));
   list.innerHTML = "";
@@ -101,6 +113,17 @@ function renderDone() {
     list.appendChild(chip);
   });
 }
+
+document.getElementById("clearDoneBtn").onclick = () => {
+  if (!done.size) return;
+  if (!confirm(`Clear all ${done.size} done events?`)) return;
+  done.clear();
+  saveState();
+  renderDone();
+  drawEventMarkers();
+  document.getElementById("doneSearch").value = "";
+  document.getElementById("doneSuggest").innerHTML = "";
+};
 
 const doneSearch = document.getElementById("doneSearch");
 const suggestBox = document.getElementById("doneSuggest");
@@ -358,7 +381,7 @@ function renderResults(rankBy) {
   const tbody = document.querySelector("#resultTable tbody");
   tbody.innerHTML = "";
   selectedRow = null;
-  results.slice(0, 10).forEach(c => {
+  results.forEach(c => {
     const tr = document.createElement("tr");
     const d = c.crowRank - c.roadRank;
     const delta = d > 0 ? `<span class="delta-up">▲${d}</span>` :
@@ -375,7 +398,7 @@ function renderResults(rankBy) {
     tbody.appendChild(tr);
   });
   document.getElementById("resultFoot").textContent =
-    `Top 10 of ${results.length} nearby candidates checked by road. Click a row to draw the driving route; Δ shows movement versus the official crow-flies ranking.`;
+    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). Click a row to draw the driving route; Δ shows movement versus the official crow-flies ranking.`;
 
   // Numbered map badges for top 10
   rankLayer.clearLayers();
@@ -426,6 +449,36 @@ async function selectResult(c, tr) {
     setStatus("Route fetch failed: " + err.message);
   }
 }
+
+// ---------- start fresh (new person) ----------
+document.getElementById("resetAllBtn").onclick = () => {
+  if (!confirm("Start fresh for a new person? This clears the home base, all done events and the parkrun ID.")) return;
+  // Home + done events
+  clearHome();
+  done.clear();
+  saveState();
+  localStorage.removeItem(STORE_ID);
+
+  // Parkrun ID / import fields
+  pkIdInput.value = "";
+  updateResultsLink();
+  document.getElementById("pasteBox").value = "";
+  document.getElementById("importStatus").textContent = "";
+
+  // Search fields + results
+  document.getElementById("doneSearch").value = "";
+  suggestBox.innerHTML = "";
+  clearRoute();
+  rankLayer.clearLayers();
+  candidateCache = null;
+  results = [];
+  document.getElementById("results").hidden = true;
+  setStatus("");
+
+  renderDone();
+  drawEventMarkers();
+  map.setView([-27.5, 134], 5);
+};
 
 // ---------- init ----------
 drawEventMarkers();
