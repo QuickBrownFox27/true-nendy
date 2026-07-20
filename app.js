@@ -12,6 +12,7 @@ let home = loadJSON(STORE_HOME, null);           // {lat, lng, label}
 let done = new Set(loadJSON(STORE_DONE, []));    // eventname slugs
 let pickMode = false;
 let results = [];                                 // last computed ranking
+let candidateCache = null;                        // candidates with road metrics, for instant re-ranking
 let routeLayer = null;
 let selectedRow = null;
 
@@ -281,12 +282,8 @@ async function computeNendy() {
       c.driveMin = j.durations[0][i + 1] != null ? j.durations[0][i + 1] / 60 : Infinity;
     });
 
-    const rankBy = document.getElementById("rankBy").value;
-    results = [...candidates].sort((a, b) =>
-      rankBy === "duration" ? a.driveMin - b.driveMin : a.roadKm - b.roadKm);
-    results.forEach((c, i) => c.roadRank = i + 1);
-
-    renderResults(rankBy);
+    candidateCache = candidates;
+    rankAndRender();
     setStatus("");
   } catch (err) {
     setStatus("Failed: " + err.message + " — the free OSRM server may be busy; try again in a minute.");
@@ -294,6 +291,27 @@ async function computeNendy() {
     btn.disabled = false;
   }
 }
+
+// Re-sort cached candidates by the chosen metric and redraw — no new OSRM call
+function rankAndRender() {
+  if (!candidateCache) return;
+  clearRoute();
+  const rankBy = document.getElementById("rankBy").value;
+  results = [...candidateCache].sort((a, b) =>
+    rankBy === "duration" ? a.driveMin - b.driveMin : a.roadKm - b.roadKm);
+  results.forEach((c, i) => c.roadRank = i + 1);
+  renderResults(rankBy);
+}
+
+document.getElementById("rankBy").addEventListener("change", rankAndRender);
+document.getElementById("sortRoad").onclick = () => {
+  document.getElementById("rankBy").value = "distance";
+  rankAndRender();
+};
+document.getElementById("sortDrive").onclick = () => {
+  document.getElementById("rankBy").value = "duration";
+  rankAndRender();
+};
 
 function fmtDur(min) {
   if (!isFinite(min)) return "—";
@@ -305,6 +323,8 @@ function fmtKm(km) { return isFinite(km) ? km.toFixed(1) + " km" : "—"; }
 function renderResults(rankBy) {
   const panel = document.getElementById("results");
   panel.hidden = false;
+  document.getElementById("sortRoad").classList.toggle("active", rankBy === "distance");
+  document.getElementById("sortDrive").classList.toggle("active", rankBy === "duration");
 
   // Hero card — the true NENDY
   const top = results[0];

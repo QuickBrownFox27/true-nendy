@@ -199,6 +199,10 @@ label.chk { display: flex; gap: 6px; align-items: center; font-size: 13px; }
 
 #resultTable { width: 100%; border-collapse: collapse; font-size: 13px; }
 #resultTable th { text-align: left; color: var(--muted); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+#resultTable th.sortable { cursor: pointer; text-decoration: underline dotted; }
+#resultTable th.sortable:hover { color: var(--plum); }
+#resultTable th.sortable.active { color: var(--plum); }
+#resultTable th.sortable.active::after { content: " ▾"; }
 #resultTable td { padding: 6px; border-bottom: 1px solid #f0ecf6; }
 #resultTable th.num, #resultTable td.num { text-align: right; font-variant-numeric: tabular-nums; }
 #resultTable tbody tr { cursor: pointer; }

@@ -52,8 +52,8 @@
       <div class="row wrap opts">
         <label>Rank by
           <select id="rankBy">
+            <option value="duration" selected>drive time</option>
             <option value="distance">road distance</option>
-            <option value="duration">drive time</option>
           </select>
         </label>
         <label>Candidates
@@ -72,7 +72,7 @@
     <section id="results" class="panel" hidden>
       <div id="nendyHero"></div>
       <table id="resultTable">
-        <thead><tr><th>#</th><th>Event</th><th class="num">Road</th><th class="num">Drive</th><th class="num">Crow</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Event</th><th class="num sortable" id="sortRoad" title="Rank by road distance">Road</th><th class="num sortable" id="sortDrive" title="Rank by drive time">Drive</th><th class="num">Crow</th><th></th></tr></thead>
         <tbody></tbody>
       </table>
       <p class="muted footnote" id="resultFoot">Click a row to draw the driving route. Δ shows how many places an event moved versus the official crow-flies ranking.</p>
