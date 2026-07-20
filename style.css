@@ -89,6 +89,8 @@ button.primary {
   color: #3a2800;
   font-weight: 600;
   font-size: 15px;
+  white-space: normal;
+  line-height: 1.3;
 }
 button.primary:hover { filter: brightness(0.95); }
 button:disabled { opacity: 0.5; cursor: wait; }
