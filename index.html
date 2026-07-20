@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>True NENDY — parkrun road-distance planner (unofficial)</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="layout">
+  <aside id="sidebar">
+    <header>
+      <h1>True NENDY</h1>
+      <p class="sub">Nearest Event Not Done Yet — by <strong>road</strong>, not as the crow flies. Unofficial tool for Australian parkrun tourists.</p>
+    </header>
+
+    <section class="panel">
+      <h2>1 · Home base</h2>
+      <div class="row">
+        <input id="addr" type="text" placeholder="Suburb or address, e.g. Parramatta NSW" autocomplete="off">
+        <button id="geocodeBtn" title="Search address">Search</button>
+      </div>
+      <div class="row small-gap">
+        <button id="gpsBtn" class="ghost">📍 Use my location</button>
+        <button id="pickBtn" class="ghost">🎯 Click map to set</button>
+      </div>
+      <div id="homeLabel" class="muted"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2 · Events you've done <span id="doneCount" class="pill">0</span></h2>
+      <div class="import-box">
+        <div class="import-title">⚡ Bulk import from your parkrun results</div>
+        <div class="row">
+          <input id="pkId" type="text" placeholder="Your parkrun ID, e.g. 7747019" autocomplete="off">
+          <a id="resultsLink" class="btn-link" target="_blank" rel="noopener" hidden>Open my results ↗</a>
+        </div>
+        <p class="hint">On your results page press <kbd>Ctrl</kbd>+<kbd>A</kbd> then <kbd>Ctrl</kbd>+<kbd>C</kbd>, come back and paste below.</p>
+        <textarea id="pasteBox" rows="4" placeholder="Paste your whole results page here…"></textarea>
+        <button id="importBtn" class="primary">Import &amp; show my top 10</button>
+        <div id="importStatus" class="muted"></div>
+      </div>
+      <div class="or-line"><span>or tick off manually</span></div>
+      <input id="doneSearch" type="text" placeholder="Type to find an event, click to tick it off…" autocomplete="off">
+      <div id="doneSuggest" class="suggest"></div>
+      <div id="doneList" class="done-list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>3 · Compute true NENDY</h2>
+      <div class="row wrap opts">
+        <label>Rank by
+          <select id="rankBy">
+            <option value="distance">road distance</option>
+            <option value="duration">drive time</option>
+          </select>
+        </label>
+        <label>Candidates
+          <select id="candN">
+            <option>15</option>
+            <option selected>25</option>
+            <option>40</option>
+          </select>
+        </label>
+        <label class="chk"><input id="inclJuniors" type="checkbox"> include junior parkruns</label>
+      </div>
+      <button id="computeBtn" class="primary">Compute NENDY by road</button>
+      <div id="status" class="muted"></div>
+    </section>
+
+    <section id="results" class="panel" hidden>
+      <div id="nendyHero"></div>
+      <table id="resultTable">
+        <thead><tr><th>#</th><th>Event</th><th class="num">Road</th><th class="num">Drive</th><th class="num">Crow</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted footnote" id="resultFoot">Click a row to draw the driving route. Δ shows how many places an event moved versus the official crow-flies ranking.</p>
+    </section>
+
+    <footer class="muted">
+      Data: parkrun events list (2026-07-20) · Routing © <a href="https://project-osrm.org" target="_blank">OSRM</a> / OpenStreetMap · Not affiliated with parkrun.
+    </footer>
+  </aside>
+  <div id="map"></div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="events-au.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
