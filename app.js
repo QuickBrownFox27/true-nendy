@@ -429,11 +429,12 @@ function renderResults(rankBy) {
       <td class="num">${c.noRoad ? "n/a" : fmtDur(c.driveMin)}</td>
       <td class="num">${fmtKm(c.crow)}</td>
       <td>${delta}</td>`;
-    tr.onclick = () => selectResult(c, tr);
+    c._tr = tr;                       // remember the row so map clicks can highlight it
+    tr.onclick = () => selectEvent(c);
     tbody.appendChild(tr);
   });
   document.getElementById("resultFoot").textContent =
-    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). The route to #1 is drawn automatically. Click any other row to draw its route instead. Δ shows movement versus the official crow-flies ranking.`;
+    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). Click any row or numbered map pin to draw that event's driving route. Δ shows movement versus the official crow-flies ranking.`;
 
   // Numbered map badges for top 10
   rankLayer.clearLayers();
@@ -445,16 +446,15 @@ function renderResults(rankBy) {
         iconSize: [24, 24], iconAnchor: [12, 12]
       }),
       zIndexOffset: 1000 - c.roadRank
-    }).bindPopup(popupHtml(c)).addTo(rankLayer);
+    }).addTo(rankLayer).on("click", () => selectEvent(c));
   });
 
   const b = L.latLngBounds(results.slice(0, 10).map(c => [c.lat, c.lng]));
   b.extend([home.lat, home.lng]);
   map.fitBounds(b.pad(0.15));
 
-  // Auto-draw the driving route to the #1 ranked event (same as clicking it)
-  const firstRow = tbody.firstElementChild;
-  if (firstRow && results[0]) selectResult(results[0], firstRow);
+  // Draw the #1 route to start; selecting any other event replaces it
+  if (results[0]) selectEvent(results[0]);
 }
 
 // ---------- route drawing ----------
@@ -462,10 +462,11 @@ function clearRoute() {
   if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
 }
 
-async function selectResult(c, tr) {
+async function selectEvent(c) {
   if (selectedRow) selectedRow.classList.remove("sel");
-  tr.classList.add("sel");
-  selectedRow = tr;
+  const tr = c._tr;
+  if (tr) { tr.classList.add("sel"); tr.scrollIntoView({ block: "nearest" }); }
+  selectedRow = tr || null;
   clearRoute();
   if (c.noRoad) {
     routeLayer = L.polyline([[home.lat, home.lng], [c.lat, c.lng]],
