@@ -7,6 +7,24 @@ const STORE_HOME = "nendy.home";
 const STORE_DONE = "nendy.done";
 const STORE_ID = "nendy.pkid";
 
+// Ferry terminals where every road route to the mainland funnels through.
+// Routing engines (OSRM included) treat these vehicle ferries as roads, but
+// our crow-flies pre-filter can't "see" across water — so for island homes
+// the true road-nearest events (clustered around the mainland terminal) never
+// make the shortlist. For applicable homes we seed the shortlist with the
+// events nearest the terminal so OSRM gets asked about them.
+const SEED_PER_GATEWAY = 10;
+const FERRY_GATEWAYS = [
+  {
+    // Spirit of Tasmania — Tasmanian homes reach the mainland via the
+    // Geelong (Corio Quay) terminal.
+    label: "Geelong (Spirit of Tasmania)",
+    lat: -38.0920, lng: 144.3960,
+    // Tasmania + Bass Strait islands bounding box (excludes mainland Victoria)
+    appliesTo: h => h.lat >= -43.8 && h.lat <= -39.2 && h.lng >= 143.7 && h.lng <= 148.6,
+  },
+];
+
 // ---------- state ----------
 let home = loadJSON(STORE_HOME, null);           // {lat, lng, label}
 let done = new Set(loadJSON(STORE_DONE, []));    // eventname slugs
@@ -285,13 +303,29 @@ async function computeNendy() {
     const inclJuniors = document.getElementById("inclJuniors").checked;
     const N = +document.getElementById("candN").value;
 
-    // Shortlist nearest undone events by crow-flies
-    const candidates = PARKRUN_EVENTS
+    // Shortlist nearest undone events by crow-flies from home
+    const eligible = PARKRUN_EVENTS
       .filter(e => !done.has(e.n) && (inclJuniors || e.s === 1))
-      .map(e => ({ ...e, crow: haversine(home.lat, home.lng, e.lat, e.lng) }))
-      .sort((a, b) => a.crow - b.crow)
-      .slice(0, N);
-    candidates.forEach((c, i) => c.crowRank = i + 1);
+      .map(e => ({ ...e, crow: haversine(home.lat, home.lng, e.lat, e.lng) }));
+    const candidates = [...eligible].sort((a, b) => a.crow - b.crow).slice(0, N);
+
+    // Ferry-gateway seeding (see FERRY_GATEWAYS): add the events nearest each
+    // applicable mainland terminal so an island home's true road-nearest
+    // cluster gets checked by OSRM, deduped against the crow-flies shortlist.
+    const picked = new Set(candidates.map(c => c.n));
+    for (const g of FERRY_GATEWAYS) {
+      if (!g.appliesTo(home)) continue;
+      [...eligible]
+        .sort((a, b) => haversine(g.lat, g.lng, a.lat, a.lng) - haversine(g.lat, g.lng, b.lat, b.lng))
+        .slice(0, SEED_PER_GATEWAY)
+        .forEach(e => { if (!picked.has(e.n)) { picked.add(e.n); candidates.push(e); } });
+    }
+
+    // OSRM demo server caps a table request at 100 coordinates (home + 99 events)
+    if (candidates.length > 99) candidates.length = 99;
+
+    // Crow-flies rank across the final candidate set, measured from home
+    [...candidates].sort((a, b) => a.crow - b.crow).forEach((c, i) => c.crowRank = i + 1);
 
     // One OSRM table call: home + all candidates
     const coords = [`${home.lng},${home.lat}`, ...candidates.map(c => `${c.lng},${c.lat}`)].join(";");
