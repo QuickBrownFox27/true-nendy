@@ -1,4 +1,4 @@
-/* True NENDY — parkrun road-distance planner (unofficial) */
+/* True NENDY: parkrun road-distance planner (unofficial) */
 "use strict";
 
 const OSRM = "https://router.project-osrm.org";
@@ -6,17 +6,18 @@ const NOMINATIM = "https://nominatim.openstreetmap.org/search";
 const STORE_HOME = "nendy.home";
 const STORE_DONE = "nendy.done";
 const STORE_ID = "nendy.pkid";
+const STORE_INTRO = "nendy.introHidden";
 
 // Ferry terminals where every road route to the mainland funnels through.
 // Routing engines (OSRM included) treat these vehicle ferries as roads, but
-// our crow-flies pre-filter can't "see" across water — so for island homes
+// our crow-flies pre-filter can't "see" across water, so for island homes
 // the true road-nearest events (clustered around the mainland terminal) never
 // make the shortlist. For applicable homes we seed the shortlist with the
 // events nearest the terminal so OSRM gets asked about them.
 const SEED_PER_GATEWAY = 10;
 const FERRY_GATEWAYS = [
   {
-    // Spirit of Tasmania — Tasmanian homes reach the mainland via the
+    // Spirit of Tasmania: Tasmanian homes reach the mainland via the
     // Geelong (Corio Quay) terminal.
     label: "Geelong (Spirit of Tasmania)",
     lat: -38.0920, lng: 144.3960,
@@ -225,7 +226,7 @@ document.getElementById("importBtn").onclick = async () => {
   if (!text.trim()) { st.textContent = "Paste your results page text above first."; return; }
   const { matched, unmatched } = parseResultsPaste(text);
   if (!matched.size) {
-    st.textContent = "No Australian parkrun events recognised in that text — make sure you copied the whole results page (Ctrl+A, Ctrl+C).";
+    st.textContent = "No Australian parkrun events recognised in that text. Make sure you copied the whole results page (Ctrl+A, Ctrl+C).";
     return;
   }
   const before = done.size;
@@ -255,7 +256,7 @@ async function geocode() {
     const url = `${NOMINATIM}?format=json&limit=1&countrycodes=au&q=${encodeURIComponent(q)}`;
     const r = await fetch(url, { headers: { "Accept-Language": "en" } });
     const j = await r.json();
-    if (!j.length) { setStatus("No match found — try adding the state, e.g. “Ballarat VIC”."); return; }
+    if (!j.length) { setStatus("No match found. Try adding the state, e.g. “Ballarat VIC”."); return; }
     setHome(+j[0].lat, +j[0].lon, j[0].display_name.split(",").slice(0, 3).join(","));
     setStatus("");
   } catch (err) {
@@ -344,13 +345,13 @@ async function computeNendy() {
     rankAndRender();
     setStatus("");
   } catch (err) {
-    setStatus("Failed: " + err.message + " — the free OSRM server may be busy; try again in a minute.");
+    setStatus("Failed: " + err.message + ". The free OSRM server may be busy; try again in a minute.");
   } finally {
     btn.disabled = false;
   }
 }
 
-// Re-sort cached candidates by the chosen metric and redraw — no new OSRM call
+// Re-sort cached candidates by the chosen metric and redraw, no new OSRM call
 function rankAndRender() {
   if (!candidateCache) return;
   clearRoute();
@@ -378,11 +379,11 @@ document.getElementById("sortCrow").onclick = () => {
 };
 
 function fmtDur(min) {
-  if (!isFinite(min)) return "—";
+  if (!isFinite(min)) return "n/a";
   const h = Math.floor(min / 60), m = Math.round(min % 60);
   return h ? `${h} h ${m.toString().padStart(2, "0")} min` : `${m} min`;
 }
-function fmtKm(km) { return isFinite(km) ? km.toFixed(1) + " km" : "—"; }
+function fmtKm(km) { return isFinite(km) ? km.toFixed(1) + " km" : "n/a"; }
 
 function renderResults(rankBy) {
   const panel = document.getElementById("results");
@@ -391,7 +392,7 @@ function renderResults(rankBy) {
   document.getElementById("sortDrive").classList.toggle("active", rankBy === "duration");
   document.getElementById("sortCrow").classList.toggle("active", rankBy === "crow");
 
-  // Hero card — the true (or official) NENDY
+  // Hero card: the true (or official) NENDY
   const top = results[0];
   const crowTop = results.find(c => c.crowRank === 1);
   const hero = document.getElementById("nendyHero");
@@ -408,7 +409,7 @@ function renderResults(rankBy) {
   hero.innerHTML = `
     <div class="tag">Your ${rankBy === "crow" ? "official" : "true"} NENDY · ${rankLabel}</div>
     <div class="name">${top.name}</div>
-    <div class="stats">${top.noRoad ? "✈️ no road route — fly!" : `🚗 ${fmtKm(top.roadKm)} · ⏱ ${fmtDur(top.driveMin)}`} · 🐦 ${fmtKm(top.crow)} direct (crow rank #${top.crowRank})</div>
+    <div class="stats">${top.noRoad ? "✈️ no road route, fly!" : `🚗 ${fmtKm(top.roadKm)} · ⏱ ${fmtDur(top.driveMin)}`} · 🐦 ${fmtKm(top.crow)} direct (crow rank #${top.crowRank})</div>
     ${upset}`;
 
   // Table
@@ -425,14 +426,14 @@ function renderResults(rankBy) {
       <td>${c.roadRank}</td>
       <td><div class="evt-name">${c.name.replace(" parkrun", "")}${c.s === 2 ? " (jr)" : ""}</div><div class="evt-loc">${c.loc || ""}</div></td>
       <td class="num">${c.noRoad ? "✈️ fly" : fmtKm(c.roadKm)}</td>
-      <td class="num">${c.noRoad ? "—" : fmtDur(c.driveMin)}</td>
+      <td class="num">${c.noRoad ? "n/a" : fmtDur(c.driveMin)}</td>
       <td class="num">${fmtKm(c.crow)}</td>
       <td>${delta}</td>`;
     tr.onclick = () => selectResult(c, tr);
     tbody.appendChild(tr);
   });
   document.getElementById("resultFoot").textContent =
-    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). The route to #1 is drawn automatically — click any other row to draw its route instead. Δ shows movement versus the official crow-flies ranking.`;
+    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). The route to #1 is drawn automatically. Click any other row to draw its route instead. Δ shows movement versus the official crow-flies ranking.`;
 
   // Numbered map badges for top 10
   rankLayer.clearLayers();
@@ -470,7 +471,7 @@ async function selectResult(c, tr) {
     routeLayer = L.polyline([[home.lat, home.lng], [c.lat, c.lng]],
       { color: "#c0392b", weight: 3, dashArray: "8 8", opacity: 0.8 }).addTo(map);
     map.fitBounds(routeLayer.getBounds().pad(0.15));
-    setStatus(`✈️ No road route to ${c.name} — that one's a flight (${fmtKm(c.crow)} as the crow flies).`);
+    setStatus(`✈️ No road route to ${c.name}. That one's a flight (${fmtKm(c.crow)} as the crow flies).`);
     return;
   }
   setStatus(`Fetching route to ${c.name}…`);
@@ -517,6 +518,17 @@ document.getElementById("resetAllBtn").onclick = () => {
   drawEventMarkers();
   map.setView([-27.5, 134], 5);
 };
+
+// ---------- intro card ----------
+(function initIntro() {
+  const panel = document.getElementById("introPanel");
+  if (!panel) return;
+  if (localStorage.getItem(STORE_INTRO)) panel.hidden = true;
+  document.getElementById("hideIntroBtn").onclick = () => {
+    panel.hidden = true;
+    localStorage.setItem(STORE_INTRO, "1");
+  };
+})();
 
 // ---------- init ----------
 drawEventMarkers();

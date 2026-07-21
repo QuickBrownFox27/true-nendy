@@ -187,6 +187,32 @@ textarea:focus { outline: none; border-color: var(--plum); }
 
 label.chk { display: flex; gap: 6px; align-items: center; font-size: 13px; }
 
+.intro { background: linear-gradient(135deg, #ffffff, #f7f4fb); position: relative; }
+.intro p { margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: var(--text); }
+.intro p:first-of-type { margin-top: 0; }
+.intro-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--plum);
+  text-decoration: none;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 1px;
+}
+.intro-link:hover { color: var(--plum-dark); }
+.intro-hide {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 2px 6px;
+  font-size: 13px;
+  line-height: 1;
+}
+.intro-hide:hover { background: transparent; color: #a02020; }
+
 .home-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .home-row .muted { flex: 1; }
 .panel h2 .clear-link { float: right; }

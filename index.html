@@ -3,17 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>True NENDY — parkrun road-distance planner (unofficial)</title>
+<title>True NENDY: parkrun road-distance planner (unofficial)</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <div id="layout">
   <aside id="sidebar">
     <header>
       <h1>True NENDY</h1>
-      <p class="sub">Nearest Event Not Done Yet — by <strong>road</strong>, not as the crow flies. Unofficial tool for Australian parkrun tourists.</p>
+      <p class="sub">Nearest Event Not Done Yet, by <strong>road</strong>, not as the crow flies. Unofficial tool for Australian parkrun tourists.</p>
     </header>
+
+    <section class="panel intro" id="introPanel">
+      <button id="hideIntroBtn" class="intro-hide" title="Hide this intro">✕</button>
+      <p>👋 <strong>G'day, parkrun tourist!</strong> You did the sums in your head: "the next new one's <em>that</em> one, surely it's closest." But the crow lied to you. Crows don't drive. They don't queue at roundabouts, they've never caught the Spirit of Tasmania, and not one of them has done a barkrun.</p>
+      <p>True NENDY finds your <strong>Nearest Event Not Done Yet by actual road</strong>, not straight-line-as-the-crow-flies, so you bag fresh finish tokens without blasting past three closer ones. Drop your home base, tick off the 'runs you've conquered, and let it plot your next adventure. 🔔</p>
+      <a class="intro-link" href="https://quickbrownfox.netlify.app/" target="_blank" rel="noopener">↩ Back to my parkrun data journal</a>
+    </section>
 
     <section class="panel">
       <h2>1 · Home base</h2>
@@ -78,7 +85,7 @@
     <section id="results" class="panel" hidden>
       <div id="nendyHero"></div>
       <table id="resultTable">
-        <thead><tr><th>#</th><th>Event</th><th class="num sortable" id="sortRoad" title="Rank by road distance">Road</th><th class="num sortable" id="sortDrive" title="Rank by drive time">Drive</th><th class="num sortable" id="sortCrow" title="Rank as the crow flies — the official NENDY order">Crow</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Event</th><th class="num sortable" id="sortRoad" title="Rank by road distance">Road</th><th class="num sortable" id="sortDrive" title="Rank by drive time">Drive</th><th class="num sortable" id="sortCrow" title="Rank as the crow flies: the official NENDY order">Crow</th><th></th></tr></thead>
         <tbody></tbody>
       </table>
       <p class="muted footnote" id="resultFoot">Click a row to draw the driving route. Δ shows how many places an event moved versus the official crow-flies ranking.</p>
@@ -87,13 +94,13 @@
     <button id="resetAllBtn" class="ghost reset-all">🔄 Start fresh for a new person</button>
 
     <footer class="muted">
-      Data: parkrun events list (2026-07-20) · Routing © <a href="https://project-osrm.org" target="_blank">OSRM</a> / OpenStreetMap · Not affiliated with parkrun.
+      Data: parkrun events list (2026-07-20) · Routing © <a href="https://project-osrm.org" target="_blank">OSRM</a> / OpenStreetMap · Not affiliated with parkrun. · <a href="https://quickbrownfox.netlify.app/" target="_blank" rel="noopener">My parkrun data journal ↗</a>
     </footer>
   </aside>
   <div id="map"></div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="events-au.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="events-au.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
