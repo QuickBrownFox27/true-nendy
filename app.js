@@ -458,7 +458,12 @@ function renderResults(rankBy) {
 }
 
 // ---------- route drawing ----------
+// routeSeq invalidates any in-flight route fetch: clearing the route or starting
+// a new selection bumps it, so a slow OSRM response that resolves late (e.g. after
+// the event was marked done and recomputed) knows to abandon its draw.
+let routeSeq = 0;
 function clearRoute() {
+  routeSeq++;
   if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
 }
 
@@ -468,6 +473,7 @@ async function selectEvent(c) {
   if (tr) { tr.classList.add("sel"); tr.scrollIntoView({ block: "nearest" }); }
   selectedRow = tr || null;
   clearRoute();
+  const seq = routeSeq;               // this selection's ticket
   if (c.noRoad) {
     routeLayer = L.polyline([[home.lat, home.lng], [c.lat, c.lng]],
       { color: "#c0392b", weight: 3, dashArray: "8 8", opacity: 0.8 }).addTo(map);
@@ -480,12 +486,14 @@ async function selectEvent(c) {
     const url = `${OSRM}/route/v1/driving/${home.lng},${home.lat};${c.lng},${c.lat}?overview=full&geometries=geojson`;
     const r = await fetch(url);
     const j = await r.json();
+    if (seq !== routeSeq) return;      // superseded by a newer clear or selection
     if (j.code !== "Ok") throw new Error(j.message || j.code);
     const line = j.routes[0].geometry;
     routeLayer = L.geoJSON(line, { style: { color: "#ffa300", weight: 5, opacity: 0.85 } }).addTo(map);
     map.fitBounds(routeLayer.getBounds().pad(0.15));
     setStatus(`Route: ${fmtKm(j.routes[0].distance / 1000)}, ${fmtDur(j.routes[0].duration / 60)} to ${c.name}.`);
   } catch (err) {
+    if (seq !== routeSeq) return;      // a newer selection owns the map now
     setStatus("Route fetch failed: " + err.message);
   }
 }
