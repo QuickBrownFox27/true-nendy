@@ -432,7 +432,7 @@ function renderResults(rankBy) {
     tbody.appendChild(tr);
   });
   document.getElementById("resultFoot").textContent =
-    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). Click a row to draw the driving route; Δ shows movement versus the official crow-flies ranking.`;
+    `All ${results.length} nearby candidates checked by road (top 10 numbered on the map). The route to #1 is drawn automatically — click any other row to draw its route instead. Δ shows movement versus the official crow-flies ranking.`;
 
   // Numbered map badges for top 10
   rankLayer.clearLayers();
@@ -450,6 +450,10 @@ function renderResults(rankBy) {
   const b = L.latLngBounds(results.slice(0, 10).map(c => [c.lat, c.lng]));
   b.extend([home.lat, home.lng]);
   map.fitBounds(b.pad(0.15));
+
+  // Auto-draw the driving route to the #1 ranked event (same as clicking it)
+  const firstRow = tbody.firstElementChild;
+  if (firstRow && results[0]) selectResult(results[0], firstRow);
 }
 
 // ---------- route drawing ----------
