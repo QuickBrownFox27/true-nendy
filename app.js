@@ -45,7 +45,7 @@ function saveState() {
 }
 
 // ---------- map ----------
-const map = L.map("map").setView([-27.5, 134], 5); // Australia
+const map = L.map("map").setView([-22, 150], 3); // AU / NZ / SE Asia region
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -253,7 +253,7 @@ async function geocode() {
   if (!q) return;
   setStatus("Searching address…");
   try {
-    const url = `${NOMINATIM}?format=json&limit=1&countrycodes=au&q=${encodeURIComponent(q)}`;
+    const url = `${NOMINATIM}?format=json&limit=1&countrycodes=au,nz,my,sg&q=${encodeURIComponent(q)}`;
     const r = await fetch(url, { headers: { "Accept-Language": "en" } });
     const j = await r.json();
     if (!j.length) { setStatus("No match found. Try adding the state, e.g. “Ballarat VIC”."); return; }
@@ -525,7 +525,7 @@ document.getElementById("resetAllBtn").onclick = () => {
 
   renderDone();
   drawEventMarkers();
-  map.setView([-27.5, 134], 5);
+  map.setView([-22, 150], 3);
 };
 
 // ---------- intro card ----------
